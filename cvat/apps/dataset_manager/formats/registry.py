@@ -126,3 +126,4 @@ import cvat.apps.dataset_manager.formats.kitti
 import cvat.apps.dataset_manager.formats.lfw
 import cvat.apps.dataset_manager.formats.cityscapes
 import cvat.apps.dataset_manager.formats.openimages
+import cvat.apps.dataset_manager.formats.isi
