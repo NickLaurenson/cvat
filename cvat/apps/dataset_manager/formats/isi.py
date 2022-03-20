@@ -67,8 +67,8 @@ def _export(file_object, instance_data :TaskData, save_images=False):
                 raw_data.append(frame_annotation.frame)
                 nb_keyframe += 1
                 for shape in frame_annotation.labeled_shapes:
-                    raw_data.append(shape.points[0])
-                    raw_data.append(shape.points[1])
+                    pt = [-1,-1] if shape.occluded else shape.points[0:2]
+                    raw_data += pt
 
         data = {}
         data['rows'] = nb_keyframe
