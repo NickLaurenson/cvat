@@ -7,6 +7,16 @@ from ..util import make_zip_archive
 from .registry import exporter, importer
 from ..bindings import TaskData
 
+################################################################
+# START: Yaml workaround to support OpenCV format
+################################################################
+
+# OpenCV yaml parser required some extrat indent for list
+# see https://stackoverflow.com/a/39681672/7037304
+class OpenCVDumper(yaml.SafeDumper):
+    def increase_indent(self, flow=False, indentless=False):
+        return super(OpenCVDumper, self).increase_indent(flow, False)
+
 # Some work around to handle the !!opencv-matrix tag
 # see https://stackoverflow.com/questions/36315644/how-do-you-add-a-type-tag-when-using-a-pyyaml-dumper/36317291#answer-36317291
 OPENCV_MATRIX_TAG = u"tag:yaml.org,2002:opencv-matrix"
@@ -14,7 +24,7 @@ OPENCV_MATRIX_TAG = u"tag:yaml.org,2002:opencv-matrix"
 # representer for adding !!opencv_matrix in yaml
 class OpenCVMatrixTag(dict):
     pass
-def yaml_opencv_matrix_tag_representer(dumper: yaml.SafeDumper, data: OpenCVMatrixTag) -> yaml.nodes.MappingNode:
+def yaml_opencv_matrix_tag_representer(dumper: OpenCVDumper, data: OpenCVMatrixTag) -> yaml.nodes.MappingNode:
     return dumper.represent_mapping(tag=OPENCV_MATRIX_TAG, mapping=data.items())
 
 yaml.representer.SafeRepresenter.add_representer(data_type=OpenCVMatrixTag, representer=yaml_opencv_matrix_tag_representer)
@@ -25,6 +35,9 @@ def yaml_opencv_matrix_tag_constuctor(loader: yaml.UnsafeLoader, node: yaml.Mapp
 
 yaml.add_constructor(tag=OPENCV_MATRIX_TAG, constructor=yaml_opencv_matrix_tag_constuctor)
 
+################################################################
+# END: Yaml workaround to support OpenCV format
+################################################################
 
 class MarkerReader:
     def __init__(self, file):
@@ -83,7 +96,7 @@ def _export(file_object, instance_data :TaskData, save_images=False):
             # write the file
             f.write('%YAML:1.0\n')
             f.write('\n')
-            yaml.safe_dump(data, f)
+            yaml.dump(data, f, Dumper=OpenCVDumper)
 
         make_zip_archive(temp_dir, file_object)
 
